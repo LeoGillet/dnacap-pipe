@@ -24,7 +24,8 @@ def ensure_paths():
         raise FileNotFoundError(
             "Tool(s) {} were not found using paths located in config file. Stopping.".format(not_found_tools))
     else:
-        log("All tools were found using paths in config file.")
+        log("All tools were found using paths in config file.", level='SUCCESS')
+
 
 # ---------------------------------------------
 
@@ -111,6 +112,7 @@ def _archive_old_output():
     """
     archive_date = datetime.fromtimestamp(os.path.getctime('output/' + os.listdir('output')[0])).strftime(
         "%Y%m%d_%H%M%S")
+    print(str_warn(f"Archiving previous results to output_{archive_date}.zip"))
     shutil.make_archive(f'output_{archive_date}', 'zip', 'output')
     log("Archived previous results in file {}".format(f'output_{archive_date}.zip'), level='WARN')
 
@@ -156,8 +158,11 @@ def check_folders():
     while not _is_output_empty():
         if _ask_overwrite_behaviour(): sys.exit(1)
     os.makedirs("output/intermediate_files/sickled")
+    os.makedirs("output/intermediate_files/fastqc_reports")
+    os.makedirs("output/logs")
     os.makedirs("output/denovo")
     os.makedirs("output/mapping")
+    os.makedirs("output/multiqc")
 
 
 # ---------------------------------------------
