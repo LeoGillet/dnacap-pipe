@@ -290,3 +290,25 @@ _docs/*
 *.zip
 refs/*
 probes/*
+
+# All sequence formats
+*.fq
+*.fq.gz
+*.fastq
+*.fastq.gz
+*.fa
+*.faa
+*.fnn
+*.fa.gz
+*.faa.gz
+*.fnn.gz
+*.fasta
+*.fasta.gz
+*.sam
+*.sam.gz
+*.bam
+*.bam.gz
+*.gtf
+*.gff
+*.bed
+*.vcf
