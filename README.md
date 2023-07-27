@@ -1,5 +1,4 @@
 ---
-title: "dnacap-pipe Readme"
 author: "Léo Gillet <leo.gillet@chu-bordeaux.fr>"
 ---
 ⚠️ This project is currently in development and not all of its objectives have been implemented yet. 
