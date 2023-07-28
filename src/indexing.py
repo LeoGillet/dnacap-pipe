@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+This module contains all functions related to reference genomes indexing
+by both BWA & Bowtie2 aligners
+"""
 import os
 import subprocess
 
-from src.common import *
+from src.common import get_tool_path
+from src.logger import log
 
 
 def _bwa_already_indexed(genome):
@@ -29,31 +34,40 @@ def _bowtie_already_indexed(genome):
 
 
 def _bwa_indexing(genome):
-    print("Indexing genome {} with bwa index...".format(genome))
+    print(f"Indexing genome {genome} with bwa index...")
     completed = subprocess.run(f'{get_tool_path("bwa")} index "refs/bwa/{genome}"', shell=True,
                                stdout=subprocess.DEVNULL,
-                               stderr=subprocess.STDOUT)
+                               stderr=subprocess.STDOUT,
+                               check=True)
     if completed.returncode != 0:
-        log("Error occurred while indexing genome {} with BWA. Stopping.".format(genome), level='ERROR')
-        log("Stacktrace: {}".format(completed.stderr), level='ERROR')
+        log(f"Error occurred while indexing genome {genome} with BWA. Stopping.", level='ERROR')
+        log(f"Stacktrace: {completed.stderr}", level='ERROR')
     else:
-        log("bwa indexing: Genome {} has been indexed".format(genome))
+        log(f"bwa indexing: Genome {genome} has been indexed")
 
 
 def _bowtie_indexing(genome):
-    print("Indexing genome {} with bowtie2-build...".format(genome))
+    print(f"Indexing genome {genome} with bowtie2-build...")
     completed = subprocess.run(
         f'{get_tool_path("bowtie2-build")} "refs/bowtie/{genome}" "refs/bowtie/{genome}.indexed"',
-        shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
     if completed.returncode != 0:
-        log("Error occurred while indexing genome {} with bowtie2-build. Stopping.".format(genome), level='ERROR')
-        log("Stacktrace: {}".format(completed.stderr), level='ERROR')
+        log(
+            f"Error occurred while indexing genome {genome} with bowtie2-build. Stopping.",
+            level='ERROR'
+        )
+        log(f"Stacktrace: {completed.stderr}", level='ERROR')
     else:
-        log("bowtie2-build indexing: Genome {} has been indexed".format(genome))
+        log(f"bowtie2-build indexing: Genome {genome} has been indexed")
 
 
 def index_everything():
-    # TODO: Can probably be handled better, but works
+    """
+    Finds all compatible sequences (fasta) and indexes them firstly with BWA
+    and then with bowtie2
+
+    TODO: Can probably be handled better, but works
+    """
     genomes_fa = [fa for fa in os.listdir('refs/bwa') if fa.endswith('.fasta')]
     for genome in genomes_fa:
         if not _bwa_already_indexed(genome):
