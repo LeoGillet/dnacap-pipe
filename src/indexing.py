@@ -24,7 +24,6 @@ def _bwa_already_indexed(genome):
 
 
 def _bowtie_already_indexed(genome):
-    # TODO: src.indexing._bowtie_already_indexed not optimal checking
     # /!\  This is a pretty lazy check and doesn't guarantee the integrity of the indexed genome
     #      + is slow because of repetitive folder scans
     for file in os.listdir('refs/bowtie'):
@@ -65,8 +64,6 @@ def index_everything():
     """
     Finds all compatible sequences (fasta) and indexes them firstly with BWA
     and then with bowtie2
-
-    TODO: Can probably be handled better, but works
     """
     genomes_fa = [fa for fa in os.listdir('refs/bwa') if fa.endswith('.fasta')]
     for genome in genomes_fa:
