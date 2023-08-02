@@ -179,7 +179,11 @@ def check_folders():
     os.makedirs("output/intermediate_files/fastqc_reports")
     os.makedirs("output/logs")
     os.makedirs("output/denovo")
-    os.makedirs("output/mapping")
+    os.makedirs("output/mapping/human_mapped")
+    os.makedirs("output/mapping/human_unmapped")
+    os.makedirs("output/mapping/human_sam")
+    os.makedirs("output/mapping/human_flagstat")
+    os.makedirs("output/mapping/human_bedcov")
     os.makedirs("output/multiqc")
 
 

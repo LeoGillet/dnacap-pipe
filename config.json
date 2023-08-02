@@ -1,0 +1,28 @@
+{
+  "paths": {
+    "bcftools": "/opt/bio/bcftools/bin/bcftools",
+    "bowtie2": "/opt/bio/bowtie2-2.5.1/bowtie2",
+    "bowtie2-build": "/opt/bio/bowtie2-2.5.1/bowtie2-build",
+    "bwa": "/opt/bio/bwa/bwa",
+    "fastqc": "/opt/bio/FastQC/fastqc",
+    "samtools": "/opt/bio/samtools/bin/samtools",
+    "sickle": "/opt/bio/sickle/sickle",
+    "spades": "/opt/bio/SPAdes-3.15.5/bin/spades.py"
+  },
+  "genomes": {
+    "bwa": {
+      "D_UW-3_CX": "refs/bwa/Chlamydia_trachomatis_D-UW-3Cx.fasta",
+      "G37": "refs/bwa/Mycoplasma_genitalium_G37.fasta",
+      "GRCh38": "refs/bwa/Homo_sapiens_GRCh38.p14.fasta",
+      "MIN132": "refs/bwa/Mycoplasma_hominis_MIN132.fasta",
+      "M2321": "refs/bwa/Mycoplasma_genitalium_M2321.fasta"
+    },
+    "bowtie": {
+      "D_UW-3_CX": "refs/bowtie/Chlamydia_trachomatis_D-UW-3Cx.fasta.indexed",
+      "G37": "refs/bowtie/Mycoplasma_genitalium_G37.fasta.indexed",
+      "GRCh38": "refs/bowtie/Homo_sapiens_GRCh38.p14.fasta.indexed",
+      "MIN132": "refs/bowtie/Mycoplasma_hominis_MIN132.fasta.indexed",
+      "M2321": "refs/bwa/Mycoplasma_genitalium_M2321.fasta.indexed"
+    }
+  }
+}

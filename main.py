@@ -5,11 +5,13 @@ Main entry point to the program
 """
 import platform
 
-from src import prerequisites as pre
-from src import logger
-from src import sequences as seq
 from src import indexing as idx
+from src import logger
+from src import mapping as mp
+from src import prerequisites as pre
 from src import qc
+from src import reports as rep
+from src import sequences as seq
 
 if __name__ == '__main__':
     pre.rename_old_log()
@@ -26,4 +28,9 @@ if __name__ == '__main__':
     idx.index_everything()
     qc.run_all_fastqc(sequence_pairs)
     qc.batch_sickle(sequence_pairs)
-    qc.run_multiqc()
+    mp.map_human(sequence_pairs)
+
+    genomes = ("G37", "M2321", "MIN132", "D_UW-3_CX")
+    mp.complete_mapping(sequence_pairs, genomes)
+    rep.generate_fastqc()
+    rep.generate_mapping_reports(genomes)
