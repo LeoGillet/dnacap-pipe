@@ -5,6 +5,7 @@ Main entry point to the program
 """
 import platform
 
+from src import common
 from src import indexing as idx
 from src import logger
 from src import mapping as mp
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     qc.batch_sickle(sequence_pairs)
     mp.map_human(sequence_pairs)
 
-    genomes = ("G37", "M2321", "MIN132", "D_UW-3_CX")
+    genomes = common.choose_genomes()
     mp.complete_mapping(sequence_pairs, genomes)
     rep.generate_fastqc()
     rep.generate_mapping_reports(genomes)

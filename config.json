@@ -24,5 +24,8 @@
       "MIN132": "refs/bowtie/Mycoplasma_hominis_MIN132.fasta.indexed",
       "M2321": "refs/bwa/Mycoplasma_genitalium_M2321.fasta.indexed"
     }
+  },
+  "globals": {
+    "loaded_genomes": ["G37", "M2321", "MIN132", "D_UW-3_CX"]
   }
 }

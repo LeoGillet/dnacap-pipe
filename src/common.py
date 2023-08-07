@@ -37,5 +37,13 @@ def get_genome_path(genome_key, tool) -> str:
                 f"Error occurred when finding path of genome {genome_key} with tool {tool}.",
                 level="ERROR",
             )
-            raise KeyError(f"Error occurred when finding path of genome {genome_key} with tool {tool}.")
-        return config['genomes'][tool][genome_key]
+            raise KeyError(
+                f"Error occurred when finding path of genome {genome_key} with tool {tool}."
+            )
+        return config["genomes"][tool][genome_key]
+
+
+def choose_genomes() -> set:
+    with open("config.json", "r", encoding="UTF-8") as config_file:
+        config = json.load(config_file)
+    return set(config["globals"]["loaded_genomes"])
