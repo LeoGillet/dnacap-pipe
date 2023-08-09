@@ -29,7 +29,7 @@ if __name__ == '__main__':
     idx.index_everything()
     qc.run_all_fastqc(sequence_pairs)
     qc.batch_sickle(sequence_pairs)
-    mp.map_human(sequence_pairs)
+    # mp.map_human(sequence_pairs)
 
     genomes = common.choose_genomes()
     mp.complete_mapping(sequence_pairs, genomes)

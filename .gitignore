@@ -312,3 +312,7 @@ summarized_flagstat*
 *.gff
 *.bed
 *.vcf
+
+# Temp files
+.~*
+*#

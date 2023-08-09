@@ -44,6 +44,9 @@ def get_genome_path(genome_key, tool) -> str:
 
 
 def choose_genomes() -> set:
+    """
+    Imports genomes selected for the mapping of input sequences from config file
+    """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
     return set(config["globals"]["loaded_genomes"])

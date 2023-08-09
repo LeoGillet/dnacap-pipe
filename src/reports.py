@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Compiles FastQC reports and other pipeline logs 
+such as flagstat for post-run analysis
+"""
 import os
 import subprocess
 
@@ -87,20 +91,22 @@ def _export_flagstat_results(flagstat_results, genomes):
             * len(genomes)
         )
         summary.write(",".join(row_titles) + "\n")
-        for sample, flagstat in flagstat_results.items():
+        for sample, _ in flagstat_results.items():
             row = [sample]
             for genome in genomes:
-                row.extend(
-                    [value for value in flagstat_results[sample][genome].values()]
-                )
+                row.extend(list(flagstat_results[sample][genome].values()))
             summary.write(",".join(row) + "\n")
 
 
-def group_flagstat_results(genomes):
+def group_flagstat_results(genomes, on_human=True):
+    """
+    Summarizes all flagstat files generated from assemblies for comparison analysis
+    """
     flagstat_results = {}
     scan_dirs = [(f"output/mapping/{genome}/", genome) for genome in genomes]
-    scan_dirs.append(("output/mapping/human_flagstat/", "Human.GRCh38"))
-    genomes.add("Human.GRCh38")
+    if on_human:
+        scan_dirs.append(("output/mapping/human_flagstat/", "Human.GRCh38"))
+        genomes.add("Human.GRCh38")
     files_to_scan = []
     for dir_, genome in scan_dirs:
         files_to_scan.extend(

@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Contains all functions and tasks for the mapping
+of all input sequences on all genomes mentioned in config json
+"""
 import os
 import subprocess
 import threading
@@ -6,7 +10,7 @@ import time
 from tqdm import tqdm
 
 from src import common
-from src.logger import log, str_err, str_success
+from src.logger import log, str_success
 
 # ---------------------------------------------
 #   Human decontamination
@@ -59,6 +63,9 @@ def _start_human_mapping(fwd, rev, ext, basename):
 
 
 def map_human(paired_sequences):
+    """
+    Starts threads specific to the mapping on human genome for decontamination
+    """
     mapping_threads = []
     with tqdm(total=len(paired_sequences) + 1) as pbar:
         for i, (basename, (fwd, rev, ext)) in enumerate(paired_sequences.items()):
@@ -106,9 +113,13 @@ def map_human(paired_sequences):
 # ---------------------------------------------
 
 
-def _start_mapping(fwd, rev, ext, basename, genome):
+def _start_mapping(fr_files: (str, str, str), basename, genome, on_human=True):
+    fwd, rev, ext = fr_files
     output_dir = f"output/mapping/{genome}"
-    input_path = "output/mapping/human_unmapped"
+    if on_human:
+        input_path = "output/mapping/human_unmapped"
+    else:
+        input_path = "output/intermediate_files/sickled/"
     try:
         os.makedirs(output_dir)
     except FileExistsError:
@@ -143,14 +154,25 @@ def _start_mapping(fwd, rev, ext, basename, genome):
     )
 
 
-def complete_mapping(sequence_pairs, genomes):
+def _start_mapping_no_human(fr_files: (str, str, str), basename, genome):
+    return _start_mapping(fr_files, basename, genome, on_human=False)
+
+
+def complete_mapping(sequence_pairs, genomes, on_human=False):
+    """
+    Maps all input sequences (decontaminated or not) to all genomes
+    specified in config json
+    """
     mapping_threads = []
+    target_func = _start_mapping if on_human else _start_mapping_no_human
     with tqdm(total=len(sequence_pairs) * len(genomes) + 1) as pbar:
         for basename, (fwd, rev, ext) in sequence_pairs.items():
             for genome in genomes:
                 pbar.set_description(f"Mapping {basename} on {genome}...")
                 thread = threading.Thread(
-                    target=_start_mapping, args=(fwd, rev, ext, basename, genome), daemon=True
+                    target=target_func,
+                    args=((fwd, rev, ext), basename, genome),
+                    daemon=True,
                 )
                 mapping_threads.append(thread)
                 while threading.active_count() > 2:
@@ -169,11 +191,3 @@ def complete_mapping(sequence_pairs, genomes):
         thread.join()
     pbar.update()
     pbar.close()
-
-
-"""
-$paths_bwa mem $paths_reference $F3 $R3 > $samFile
-		$paths_samtools view -h -b -S -@ 11 $samFile >  $bamFile
-		$paths_samtools sort $bamFile > $srtFile
-		$paths_samtools index $srtFile
-        """
