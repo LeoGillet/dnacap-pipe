@@ -284,7 +284,8 @@ pyrightconfig.json
 
 # Custom rules
 input/*
-output/*
+output*/*
+mapping-results/*
 _docs/*
 *.zip
 refs/*

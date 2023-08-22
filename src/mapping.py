@@ -23,7 +23,7 @@ def _start_human_mapping(fwd, rev, ext, basename):
     fwd_input_path = f"output/intermediate_files/sickled/{fwd+ext}"
     rev_input_path = f"output/intermediate_files/sickled/{rev+ext}"
     subprocess.run(
-        f"{common.get_tool_path('bowtie2')} -p 4 -x {common.get_genome_path('GRCh38', 'bowtie')} "
+        f"{common.get_tool_path('bowtie2')} -p 4 -x {common.get_genome_path('H.sapiens.GRCh38', 'bowtie')} "
         + f"-1 {fwd_input_path} -2 {rev_input_path} "
         + f"--un-conc-gz {fwd_output_path} "
         + f"--al-conc-gz {rev_output_path} "
@@ -67,6 +67,7 @@ def map_human(paired_sequences):
     Starts threads specific to the mapping on human genome for decontamination
     """
     mapping_threads = []
+    max_threads = common.get_max_threads("mapping")
     with tqdm(total=len(paired_sequences) + 1) as pbar:
         for i, (basename, (fwd, rev, ext)) in enumerate(paired_sequences.items()):
             thread = threading.Thread(
@@ -81,10 +82,11 @@ def map_human(paired_sequences):
             )
             mapping_threads.append(thread)
             pbar.set_description(f"Mapping {basename} on human genome...")
-            while threading.active_count() > 2:
+            while threading.active_count() > max_threads:
                 pbar.set_description(
                     f"Mapping {basename} on human genome... (waiting for threads)"
                 )
+                pbar.refresh()
                 time.sleep(1)
             pbar.set_description(f"Mapping {basename} on human genome...")
             thread.start()
@@ -124,13 +126,27 @@ def _start_mapping(fr_files: (str, str, str), basename, genome, on_human=True):
         os.makedirs(output_dir)
     except FileExistsError:
         pass
+    if fwd and rev:
+        command = (
+            f"{common.get_tool_path('bwa')} mem -t 2 {common.get_genome_path(genome, 'bwa')} "
+            + f"{input_path}/{fwd+ext} "
+            + f"{input_path}/{rev+ext} > {output_dir}/{basename}.sam"
+        )
+    elif fwd:
+        command = (
+            f"{common.get_tool_path('bwa')} mem -t 2 {common.get_genome_path(genome, 'bwa')} "
+            + f"{input_path}/{fwd+ext} > {output_dir}/{basename}.sam"
+        )
+    elif rev:
+        command = (
+            f"{common.get_tool_path('bwa')} mem -t 2 {common.get_genome_path(genome, 'bwa')} "
+            + f"{input_path}/{rev+ext} > {output_dir}/{basename}.sam"
+        )
     subprocess.run(
-        f"{common.get_tool_path('bwa')} mem {common.get_genome_path(genome, 'bwa')} "
-        + f"{input_path}/{fwd+ext} "
-        + f"{input_path}/{rev+ext} > {output_dir}/{basename}.sam",
+        command,
         check=True,
         shell=True,
-        stdout=subprocess.DEVNULL,
+        capture_output=True,
     )
     subprocess.run(
         f"{common.get_tool_path('samtools')} view -h -b -@ 3 "
@@ -164,6 +180,7 @@ def complete_mapping(sequence_pairs, genomes, on_human=False):
     specified in config json
     """
     mapping_threads = []
+    max_threads = common.get_max_threads("mapping")
     target_func = _start_mapping if on_human else _start_mapping_no_human
     with tqdm(total=len(sequence_pairs) * len(genomes) + 1) as pbar:
         for basename, (fwd, rev, ext) in sequence_pairs.items():
@@ -175,10 +192,11 @@ def complete_mapping(sequence_pairs, genomes, on_human=False):
                     daemon=True,
                 )
                 mapping_threads.append(thread)
-                while threading.active_count() > 2:
+                while threading.active_count() > max_threads:
                     pbar.set_description(
                         f"Mapping {basename} on {genome}... (waiting for threads)"
                     )
+                    pbar.refresh()
                     time.sleep(1)
                 thread.start()
                 pbar.set_description(f"Mapping {basename} on {genome}...")

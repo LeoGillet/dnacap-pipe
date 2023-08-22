@@ -1,4 +1,0 @@
-fn_clean_exts:
-  - ".gz"
-  - ".fastq"
-  - ".fq"

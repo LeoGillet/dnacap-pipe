@@ -24,7 +24,7 @@ if __name__ == '__main__':
     pre.ensure_paths()
     pre.prepare_dirs()
     pre.check_folders()
-    SEQUENCER_TYPE = pre.ask_sequencer_type()
+    # SEQUENCER_TYPE = pre.ask_sequencer_type()
     sequence_pairs = seq.pair_sequences()
     idx.index_everything()
     qc.run_all_fastqc(sequence_pairs)

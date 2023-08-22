@@ -174,7 +174,7 @@ def check_folders():
                     "Exiting."))
     while not _is_output_empty():
         if _ask_overwrite_behaviour():
-            sys.exit(1)
+            return
     os.makedirs("output/intermediate_files/sickled")
     os.makedirs("output/intermediate_files/fastqc_reports")
     os.makedirs("output/logs")

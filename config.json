@@ -1,31 +1,58 @@
 {
   "paths": {
-    "bcftools": "/opt/bio/bcftools/bin/bcftools",
+    "bcftools": "/opt/bio/bcftools-1.18/build/bin/bcftools",
+    "bedtools": "/opt/bio/bedtools/bedtools",
     "bowtie2": "/opt/bio/bowtie2-2.5.1/bowtie2",
     "bowtie2-build": "/opt/bio/bowtie2-2.5.1/bowtie2-build",
     "bwa": "/opt/bio/bwa/bwa",
     "fastqc": "/opt/bio/FastQC/fastqc",
-    "samtools": "/opt/bio/samtools/bin/samtools",
-    "sickle": "/opt/bio/sickle/sickle",
-    "spades": "/opt/bio/SPAdes-3.15.5/bin/spades.py"
+    "samtools": "/opt/bio/samtools-1.18/build/bin/samtools",
+    "sickle": "/opt/bio/sickle-1.33/sickle",
+    "spades": "/opt/bio/SPAdes-3.15.4/bin/spades.py"
   },
   "genomes": {
-    "bwa": {
-      "D_UW-3_CX": "refs/bwa/Chlamydia_trachomatis_D-UW-3Cx.fasta",
-      "G37": "refs/bwa/Mycoplasma_genitalium_G37.fasta",
-      "GRCh38": "refs/bwa/Homo_sapiens_GRCh38.p14.fasta",
-      "MIN132": "refs/bwa/Mycoplasma_hominis_MIN132.fasta",
-      "M2321": "refs/bwa/Mycoplasma_genitalium_M2321.fasta"
-    },
-    "bowtie": {
-      "D_UW-3_CX": "refs/bowtie/Chlamydia_trachomatis_D-UW-3Cx.fasta.indexed",
-      "G37": "refs/bowtie/Mycoplasma_genitalium_G37.fasta.indexed",
-      "GRCh38": "refs/bowtie/Homo_sapiens_GRCh38.p14.fasta.indexed",
-      "MIN132": "refs/bowtie/Mycoplasma_hominis_MIN132.fasta.indexed",
-      "M2321": "refs/bwa/Mycoplasma_genitalium_M2321.fasta.indexed"
-    }
+      "C.coli.FDAARGOS_735": "Campylobacter_coli_FDAARGOS_735.fasta",
+      "C.jejuni.NCTC11351": "Campylobacter_jejuni_NCTC11351.fasta",
+      "H.pylori.26695": "Helicobacter_pylori_26695.fasta",
+      "H.pylori.B38": "Helicobacter_pylori_B38.fasta",
+      "H.pylori.HP45k": "Helicobacter_pylori_HP45k.fasta",
+      "H.pylori.J99.2001": "Helicobacter_pylori_J99_2001.fasta",
+      "H.pylori.J99.2015": "Helicobacter_pylori_J99_2015.fasta",
+      "H.pylori.J99.d1.2021": "Helicobacter_pylori_J99_d1_2021.fasta",
+      "H.pylori.MT5135": "Helicobacter_pylori_MT5135.fasta",
+      "C.trachomatis.D_UW-3_CX": "Chlamydia_trachomatis_D-UW-3Cx.fasta",
+      "M.genitalium.G37": "Mycoplasma_genitalium_G37.fasta",
+      "H.sapiens.GRCh38": "Homo_sapiens_GRCh38.p14.fasta",
+      "M.hominis.MIN132": "Mycoplasma_hominis_MIN132.fasta",
+      "M.genitalium.M2321": "Mycoplasma_genitalium_M2321.fasta",
+      "N.gonorrhoeae.TUM19854": "Neisseria_gonorrhoeae_TUM19854.fasta"
   },
   "globals": {
-    "loaded_genomes": ["G37", "M2321", "MIN132", "D_UW-3_CX"]
+    "loaded_genomes": [
+      "H.pylori.J99.2001",
+      "H.pylori.J99.2015",
+      "H.pylori.J99.d1.2021",
+      "H.pylori.B38",
+      "H.pylori.26695",
+      "H.pylori.MT5135",
+      "H.pylori.HP45k",
+      "C.coli.FDAARGOS_735",
+      "C.jejuni.NCTC11351",
+      "C.trachomatis.D_UW-3_CX"
+    ],
+    "regions": {
+      "H.pylori.J99.2001": "probes/roi_pylori_j99_2001.bed",
+      "M.genitalium.G37": "probes/genitalium.bed",
+      "M.genitalium.M2321": "probes/genitalium.bed",
+      "C.trachomatis.D_UW-3_CX": "probes/trachomatis.bed"
+    }
+  },
+  "threads": {
+    "coverage": 8,
+    "depth": 8,
+    "fastqc": 8,
+    "mapping": 4,
+    "plotting": 8,
+    "sickle": 8
   }
 }

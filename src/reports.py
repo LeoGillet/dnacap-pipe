@@ -4,6 +4,7 @@ Compiles FastQC reports and other pipeline logs
 such as flagstat for post-run analysis
 """
 import os
+import shutil
 import subprocess
 
 from src.logger import log, str_success
@@ -37,7 +38,11 @@ def generate_mapping_reports(genomes):
     """
     for genome in genomes:
         scan_dir = f"output/mapping/{genome}"
-        os.makedirs(f"output/multiqc/{genome}")
+        try:
+            os.makedirs(f"output/multiqc/{genome}")
+        except FileExistsError:
+            shutil.rmtree(f"output/multiqc/{genome}")
+            os.makedirs(f"output/multiqc/{genome}")
         subprocess.run(
             f"multiqc -o output/multiqc/{genome} -ip --profile-runtime {scan_dir}",
             shell=True,
@@ -50,43 +55,27 @@ def _read_flagstat(file) -> {}:
     with open(file, "r", encoding="UTF-8") as flagstat:
         lines = flagstat.readlines()
     qc_reads = lines[0].strip().split(" ")
-    qc_passed, qc_failed = qc_reads[0], qc_reads[2]
+    qc_passed = qc_reads[0]
     mapped_reads = lines[6].strip().split(" ")
     mapped_qc_passed = mapped_reads[0]
     mapped_qc_passed_perc = mapped_reads[4].replace("(", "")
-    paired_reads = lines[11].strip().split(" ")
-    paired_qc_passed = paired_reads[0]
-    paired_qc_passed_perc = paired_reads[5].replace("(", "")
-    singletons = lines[13].strip().split(" ")
-    singletons_qc_passed = singletons[0]
-    singletons_qc_passed_perc = singletons[4].replace("(", "")
     return {
         "QC Passed": qc_passed,
-        "QC Failed": qc_failed,
         "Mapped QC+": mapped_qc_passed,
         "Mapped QC+ (%)": mapped_qc_passed_perc,
-        "Properly paired QC+": paired_qc_passed,
-        "Properly paired QC+ (%)": paired_qc_passed_perc,
-        "Singletons QC+": singletons_qc_passed,
-        "Singletons QC+ (%)": singletons_qc_passed_perc,
     }
 
 
 def _export_flagstat_results(flagstat_results, genomes):
     with open("summarized_flagstat.csv", "w", encoding="UTF-8") as summary:
         # Table title row
-        summary.write(f",{',,,,,,,,'.join(genomes)}\n")
+        summary.write(f",{',,,'.join(genomes)}\n")
         row_titles = ["Sample"]
         row_titles.extend(
             [
                 "QC Passed",
-                "QC Failed",
                 "Mapped QC+",
                 "Mapped QC+ (%)",
-                "Properly paired QC+",
-                "Properly paired QC+ (%)",
-                "Singletons QC+",
-                "Singletons QC+ (%)",
             ]
             * len(genomes)
         )
