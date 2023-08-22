@@ -41,20 +41,24 @@ def get_genome_path(genome_key, tool) -> str:
     """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
-    if tool not in ("bwa", "bowtie"):
+    if tool not in ("bwa", "bowtie", "no_tool"):
         log(f"Tool {tool} not supported.", level="ERROR")
         raise KeyError(f"Tool {tool} not supported. Supported mappers: 'bwa', 'bowtie'")
-    tool = "refs/bowtie/" if tool == "bowtie" else "refs/bwa/"
-    suffix = ".indexed" if tool == "bowtie" else ""
+    suffix = ""
+    folder = "refs/"
+    if tool == "bowtie":
+        folder += "bowtie/"
+        suffix = ".indexed"
+    elif tool == "bwa":
+        folder += "bwa/"
+
     if genome_key not in config["genomes"]:
         log(
             f"Genome {genome_key} path not found in config file",
             level="ERROR",
         )
-        raise KeyError(
-            f"Genome {genome_key} path not found in config file"
-        )
-    return tool + config["genomes"][genome_key] + suffix
+        raise KeyError(f"Genome {genome_key} path not found in config file")
+    return folder + config["genomes"][genome_key] + suffix
 
 
 def get_max_threads(operation):
@@ -88,6 +92,15 @@ def choose_genomes() -> set:
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
     return set(config["globals"]["loaded_genomes"])
+
+
+def get_ignored_genomes_step3() -> set:
+    """
+    Returns set of genomes that should be ignored for depth and genes extraction
+    """
+    with open("config.json", "r", encoding="UTF-8") as config_file:
+        config = json.load(config_file)
+    return set(config["globals"]["ignored_genomes_step3"])
 
 
 def get_bam_files() -> list[tuple[str, str, str]]:
@@ -150,10 +163,15 @@ def get_genome_regions() -> dict:
     return config["globals"]["regions"]
 
 
-def get_depth_files() -> list[tuple[str, str, str]]:
+def get_depth_files(ignore_genomes: tuple[str, ...] = ()) -> list[tuple[str, str, str]]:
+    """
+    Gets all depth files created by previous steps and returns ones that shouldn't be ignored
+    """
     depth_directory = "output/depth/"
     depth_files = []
     for genome in os.listdir(depth_directory):
+        if genome in ignore_genomes:
+            continue
         for file_ in os.listdir(depth_directory + genome):
             depth_files.append(
                 (
@@ -163,3 +181,52 @@ def get_depth_files() -> list[tuple[str, str, str]]:
                 )
             )
     return depth_files
+
+
+def get_bam_files_extraction(ignore_genomes) -> list[tuple[str, str, str, str]]:
+    """
+    Gets all file required for the extraction of the genome
+    """
+    mapping_directory = "output/mapping/"
+    bam_files = []
+    for genome in os.listdir(mapping_directory):
+        if genome in ignore_genomes:
+            continue
+        for file_ in os.listdir(mapping_directory + genome):
+            if not file_.endswith(".bam") or file_.endswith("_unsorted.bam"):
+                continue
+            bam_files.append(
+                (
+                    mapping_directory + genome + "/" + file_,
+                    file_.replace(".bam", ""),
+                    genome,
+                    get_genome_path(genome, "no_tool"),
+                )
+            )
+    return bam_files
+
+
+def get_genes_files(ignore_genomes):
+    """
+    Gets all files required for the extraction of regions of interest
+    """
+    genomes_dir = "output/genes/"
+    genomes = []
+    for genome in os.listdir(genomes_dir):
+        if genome in ignore_genomes:
+            continue
+        for basename in os.listdir(genomes_dir + genome):
+            if os.path.isfile(
+                genomes_dir + genome + "/" + basename + "/" + "genome.fasta"
+            ):
+                bed_names = None
+                if os.path.isfile(get_genome_regions()[genome] + ".names.list"):
+                    bed_names = get_genome_regions()[genome] + ".names.list"
+                genomes.append((
+                    genomes_dir + genome + "/" + basename + "/" + "genome.fasta",
+                    get_genome_regions()[genome],
+                    bed_names,
+                    genomes_dir + genome + "/" + basename + "/",
+                    basename,
+                ))
+    return genomes

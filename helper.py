@@ -23,26 +23,30 @@ if __name__ == "__main__":
     sequence_pairs = []
     common.clear_stdout()
     while True:
-        print("    ╔════════════════════════════════════════════════╗")
-        print("    ║          % Pipeline Actions Helper %           ║")
-        print("    ║                                                ║")
-        print(f"    ║ 0. [Prerequisites] Run prerequisites {'✓' if wf_status.prerequisites else ' '}         ║")
-        print(f"    ║ 1. [QC] Generate FastQC reports {'✓' if wf_status.fastqc_reports else ' '}              ║")
-        print(f"    ║ 2. [QC] Clean reads {'✓' if wf_status.cleaning else ' '}                          ║")
-        print(f"    ║ 3. [Mapping] Start mapping {'✓' if wf_status.mapping else ' '}                   ║")
-        print(f"    ║ 4. [QC] Regenerate end MultiQC reports {'✓' if wf_status.mapping else ' '}       ║")
-        print(f"    ║ 5. [Reports] Summarize flagstats {'✓' if wf_status.flagstats else ' '}             ║")
-        print(f"    ║ 6. [Post] Generate coverage files {'✓' if wf_status.coverage else ' '}            ║")
-        print(f"    ║ 7. [Post] Generate depth files {'✓' if wf_status.depth_txt else ' '}               ║")
-        print(f"    ║ 8. [Visualization] Create depth plots {'✓' if wf_status.depth_plots else ' '}        ║")
-        print("    ║ Q. Quit                                        ║")
-        print("    ║                                                ║")
-        if wf_status.prerequisites:
-            print("    ║ Common run information :                       ║")
-            print(f"    ║    - {wf_status.stat_seq_n: <3} sequences                             ║")
-            print(f"    ║    - {wf_status.stat_ref_gen_n: <3} reference genomes                     ║")
-            print("    ║                                                ║")
-        print("    ╚════════════════════════════════════════════════╝\n")
+        print()
+        print("               % Pipeline Actions Helper %")
+        print()
+        print(
+            f"\t0. [Required] Run prerequisites {'✓' if wf_status.get('prerequisites') else ''}"
+        )
+        print(f"\t1. Generate FastQC reports {'✓' if wf_status.get('fastqc_reports') else ''}")
+        print(f"\t2. [Required] Clean reads {'✓' if wf_status.get('cleaning') else ''}")
+        print(f"\t3. [Required] Start mapping {'✓' if wf_status.get('mapping') else ''}")
+        print(f"\t4. Regenerate end MultiQC reports {'✓' if wf_status.get('mapping') else ''}")
+        print(f"\t5. Summarize flagstats {'✓' if wf_status.get('flagstats') else ''}")
+        print(f"\t6. Generate coverage files {'✓' if wf_status.get('coverage') else ''}")
+        print(f"\t7. Generate depth files {'✓' if wf_status.get('depth_txt') else ''}")
+        print(f"\t8. Create depth plots {'✓' if wf_status.get('depth_plots') else ''}")
+        print(f"\t9. Extract genome {'✓' if wf_status.get('genome_extracted') else ''}")
+        print(
+            f"\t10. Extract regions of interests {'✓' if wf_status.get('genes_extracted') else ''}"
+        )
+        print("\tQ. Quit\n")
+        if wf_status.get('prerequisites'):
+            print("\tCommon run information :")
+            print(f"\t\t- {wf_status.get('stat_seq_n'): <3} sequences")
+            print(f"\t\t- {wf_status.get('stat_ref_gen_n'): <3} reference genomes")
+            print("\n\n")
         choice = input("Your choice ? > ").upper()
 
         match choice:
@@ -50,8 +54,8 @@ if __name__ == "__main__":
                 pre.rename_old_log()
                 pre.delete_older_logs()
                 logger.log(
-                    "Started workflow on machine " +
-                    f"({platform.platform()} {platform.machine()}-{platform.version()})"
+                    "Started workflow on machine "
+                    + f"({platform.platform()} {platform.machine()}-{platform.version()})"
                 )
                 pre.ensure_paths()
                 pre.prepare_dirs()
@@ -75,10 +79,12 @@ if __name__ == "__main__":
                     wf_status.set("cleaning", 1)
                 else:
                     common.clear_stdout()
-                    print("You must run prerequisites before starting the mapping workflow!")
+                    print(
+                        "You must run prerequisites before starting the mapping workflow!"
+                    )
 
             case "3":
-                if wf_status.prerequisites and wf_status.cleaning:
+                if wf_status.get("prerequisites") and wf_status.get("cleaning"):
                     sequence_pairs = seq.pair_sequences(quiet=True)
                     genomes = common.choose_genomes()
                     mp.complete_mapping(sequence_pairs, genomes)
@@ -87,7 +93,10 @@ if __name__ == "__main__":
                     wf_status.set("mapping", 1)
                 else:
                     common.clear_stdout()
-                    print("You must run prerequisites and sequence cleaning before starting the mapping workflow!")
+                    print(
+                        "You must run prerequisites and sequence cleaning",
+                        "before starting the mapping workflow!",
+                    )
             case "4":
                 rep.generate_fastqc()
                 rep.generate_mapping_reports(common.choose_genomes())
@@ -99,21 +108,30 @@ if __name__ == "__main__":
                     rep.group_flagstat_results(common.choose_genomes(), on_human=True)
                 else:
                     rep.group_flagstat_results(common.choose_genomes(), on_human=False)
-                wf_status.set('flagstats', 1)
+                wf_status.set("flagstats", 1)
             case "6":
                 bed.start_coverage_analysis(
-                    common.get_bam_files(),
-                    common.get_genome_regions()
+                    common.get_bam_files(), common.get_genome_regions()
                 )
-                wf_status.set('coverage', 1)
+                wf_status.set("coverage", 1)
             case "7":
-                bed.start_depth_analysis(
-                    common.get_bam_files()
-                )
-                wf_status.set('depth_txt', 1)
+                bed.start_depth_analysis(common.get_bam_files())
+                wf_status.set("depth_txt", 1)
             case "8":
-                bed.generate_depth_plots(common.get_depth_files())
-                wf_status.set('depth_plots', 1)
+                bed.generate_depth_plots(
+                    common.get_depth_files(common.get_ignored_genomes_step3())
+                )
+                wf_status.set("depth_plots", 1)
+            case "9":
+                bed.start_genome_extraction(
+                    common.get_bam_files_extraction(common.get_ignored_genomes_step3())
+                )
+                wf_status.set("genome_extracted", 1)
+            case "10":
+                bed.start_genes_extractions(
+                    common.get_genes_files(common.get_ignored_genomes_step3())
+                )
+                wf_status.set("genes_extracted", 1)
             case "Q":
                 sys.exit(0)
             case _:

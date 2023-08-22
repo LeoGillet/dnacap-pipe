@@ -6,7 +6,6 @@ It contains all functions ensuring path is safe, and required directories are cr
 import glob
 import json
 import os
-import sys
 import shutil
 from datetime import datetime
 

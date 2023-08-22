@@ -6,9 +6,12 @@
     "bowtie2-build": "/opt/bio/bowtie2-2.5.1/bowtie2-build",
     "bwa": "/opt/bio/bwa/bwa",
     "fastqc": "/opt/bio/FastQC/fastqc",
+    "mosdepth": "/opt/bio/mosdepth-0.3.4/mosdepth",
     "samtools": "/opt/bio/samtools-1.18/build/bin/samtools",
+    "seqtk": "/opt/bio/seqtk/seqtk",
     "sickle": "/opt/bio/sickle-1.33/sickle",
-    "spades": "/opt/bio/SPAdes-3.15.4/bin/spades.py"
+    "spades": "/opt/bio/SPAdes-3.15.4/bin/spades.py",
+    "vcfutils": "/opt/bio/bcftools-1.18/build/bin/vcfutils.pl"
   },
   "genomes": {
       "C.coli.FDAARGOS_735": "Campylobacter_coli_FDAARGOS_735.fasta",
@@ -40,6 +43,17 @@
       "C.jejuni.NCTC11351",
       "C.trachomatis.D_UW-3_CX"
     ],
+    "ignored_genomes_step3": [
+      "H.pylori.J99.2015",
+      "H.pylori.J99.d1.2021",
+      "H.pylori.B38",
+      "H.pylori.26695",
+      "H.pylori.MT5135",
+      "H.pylori.HP45k",
+      "C.coli.FDAARGOS_735",
+      "C.jejuni.NCTC11351",
+      "C.trachomatis.D_UW-3_CX"
+    ],
     "regions": {
       "H.pylori.J99.2001": "probes/roi_pylori_j99_2001.bed",
       "M.genitalium.G37": "probes/genitalium.bed",
@@ -51,8 +65,9 @@
     "coverage": 8,
     "depth": 8,
     "fastqc": 8,
+    "genome_extraction": 8,
     "mapping": 4,
-    "plotting": 8,
+    "plotting": 4,
     "sickle": 8
   }
 }

@@ -23,7 +23,8 @@ def _start_human_mapping(fwd, rev, ext, basename):
     fwd_input_path = f"output/intermediate_files/sickled/{fwd+ext}"
     rev_input_path = f"output/intermediate_files/sickled/{rev+ext}"
     subprocess.run(
-        f"{common.get_tool_path('bowtie2')} -p 4 -x {common.get_genome_path('H.sapiens.GRCh38', 'bowtie')} "
+        f"{common.get_tool_path('bowtie2')} -p 4 "
+        + f"-x {common.get_genome_path('H.sapiens.GRCh38', 'bowtie')} "
         + f"-1 {fwd_input_path} -2 {rev_input_path} "
         + f"--un-conc-gz {fwd_output_path} "
         + f"--al-conc-gz {rev_output_path} "
@@ -162,6 +163,7 @@ def _start_mapping(fr_files: (str, str, str), basename, genome, on_human=True):
         check=True,
         shell=True,
     )
+    os.remove(f"{output_dir}/{basename}_unsorted.bam")
     subprocess.run(
         f"{common.get_tool_path('samtools')} flagstat {output_dir}/{basename}.bam "
         + f"> {output_dir}/{basename}.txt",

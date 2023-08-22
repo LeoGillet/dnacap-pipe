@@ -1,3 +1,9 @@
+"""
+Contains all classes and functions used to track all steps
+that were already executed during the run
+Uses a JSON file <status.json> in the output directory to save information
+"""
+
 import json
 import os
 
@@ -10,37 +16,29 @@ class Status:
 
     def __init__(self, json_path="output/status.json"):
         self.json_path = json_path
-        self.json_created = 0
-        self.prerequisites = 0
-        self.fastqc_reports = 0
-        self.cleaning = 0
-        self.mapping = 0
-        self.flagstats = 0
-        self.coverage = 0
-        self.depth_txt = 0
-        self.depth_plots = 0
-        self.stat_seq_n = '?'
-        self.stat_ref_gen_n = '?'
+        self.statuses = {
+            "json_created": 0,
+            "prerequisites": 0,
+            "fastqc_reports": 0,
+            "cleaning": 0,
+            "mapping": 0,
+            "flagstats": 0,
+            "coverage": 0,
+            "depth_txt": 0,
+            "depth_plots": 0,
+            "genome_extracted": 0,
+            "genes_extracted": 0,
+            "stat_seq_n": "?",
+            "stat_ref_gen_n": "?",
+        }
         self.get_or_create()
-        self.set('json_created', 1)
+        self.set("json_created", 1)
 
     def to_dict(self) -> dict:
         """
-        Converts object to dict
+        Returns statuses dict
         """
-        return {
-            "json_created": self.json_created,
-            "prerequisites": self.prerequisites,
-            "fastqc_reports": self.fastqc_reports,
-            "cleaning": self.cleaning,
-            "mapping": self.mapping,
-            "flagstats": self.flagstats,
-            "coverage": self.coverage,
-            "depth_txt": self.depth_txt,
-            "depth_plots": self.depth_plots,
-            "stat_seq_n": self.stat_seq_n,
-            "stat_ref_gen_n": self.stat_ref_gen_n,
-        }
+        return self.statuses
 
     def dump(self):
         """
@@ -53,30 +51,14 @@ class Status:
         """
         Sets checkpoint status to provided value
         """
-        match checkpoint:
-            case "json_created":
-                self.json_created = value
-            case "prerequisites":
-                self.prerequisites = value
-            case "fastqc_reports":
-                self.fastqc_reports = value
-            case "cleaning":
-                self.cleaning = value
-            case "mapping":
-                self.mapping = value
-            case "flagstats":
-                self.flagstats = value
-            case "coverage":
-                self.coverage = value
-            case "depth_txt":
-                self.depth_txt = value
-            case "depth_plots":
-                self.depth_plots = value
-            case "stat_seq_n":
-                self.stat_seq_n = value
-            case "stat_ref_gen_n":
-                self.stat_ref_gen_n = value
+        self.statuses[checkpoint] = value
         self.dump()
+    
+    def get(self, checkpoint):
+        try:
+            return self.statuses[checkpoint]
+        except KeyError:
+            raise KeyError("Unknown checkpoint", checkpoint, ", impossible to get")
 
     def from_dict(self, data: dict):
         """

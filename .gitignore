@@ -283,9 +283,10 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm+all,visualstudiocode
 
 # Custom rules
-input/*
-output*/*
+*input/*
+*output*/*
 mapping-results/*
+pylori-mapping-results/*
 _docs/*
 *.zip
 refs/*
