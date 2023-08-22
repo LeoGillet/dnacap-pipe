@@ -53,12 +53,15 @@ class Status:
         """
         self.statuses[checkpoint] = value
         self.dump()
-    
+
     def get(self, checkpoint):
+        """
+        Gets value of checkpoint
+        """
         try:
             return self.statuses[checkpoint]
-        except KeyError:
-            raise KeyError("Unknown checkpoint", checkpoint, ", impossible to get")
+        except KeyError as exc:
+            raise KeyError("Unknown checkpoint", checkpoint, ", impossible to get") from exc
 
     def from_dict(self, data: dict):
         """
