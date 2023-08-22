@@ -20,7 +20,9 @@ author: "Léo Gillet <leo.gillet@chu-bordeaux.fr>"
 - ✅ Automatic reference genome indexing
 - ✅ FastQC report creation
 - ✅ Sequence trimming (sickle)
-- ▶️ _De novo_ assembly
-- ❌ Decontamination
-- ❌ Mapping
+- ❌ _De novo_ assembly
+- ✅ Decontamination
+- ✅ Mapping
 - ✅ MultiQC report creation
+- ✅ Mapping coverage and depth analysis
+- ✅ Whole genome & region of intersect consensus extraction from mapping 

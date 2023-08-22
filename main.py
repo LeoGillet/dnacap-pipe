@@ -27,25 +27,25 @@ if __name__ == "__main__":
         print("               % Pipeline Actions Helper %")
         print()
         print(
-            f"\t0. [Required] Run prerequisites {'✓' if wf_status.prerequisites else ''}"
+            f"\t0. [Required] Run prerequisites {'✓' if wf_status.get('prerequisites') else ''}"
         )
-        print(f"\t1. Generate FastQC reports {'✓' if wf_status.fastqc_reports else ''}")
-        print(f"\t2. [Required] Clean reads {'✓' if wf_status.cleaning else ''}")
-        print(f"\t3. [Required] Start mapping {'✓' if wf_status.mapping else ''}")
-        print(f"\t4. Regenerate end MultiQC reports {'✓' if wf_status.mapping else ''}")
-        print(f"\t5. Summarize flagstats {'✓' if wf_status.flagstats else ''}")
-        print(f"\t6. Generate coverage files {'✓' if wf_status.coverage else ''}")
-        print(f"\t7. Generate depth files {'✓' if wf_status.depth_txt else ''}")
-        print(f"\t8. Create depth plots {'✓' if wf_status.depth_plots else ''}")
-        print(f"\t9. Extract genome {'✓' if wf_status.genome_extracted else ''}")
+        print(f"\t1. Generate FastQC reports {'✓' if wf_status.get('fastqc_reports') else ''}")
+        print(f"\t2. [Required] Clean reads {'✓' if wf_status.get('cleaning') else ''}")
+        print(f"\t3. [Required] Start mapping {'✓' if wf_status.get('mapping') else ''}")
+        print(f"\t4. Regenerate end MultiQC reports {'✓' if wf_status.get('mapping') else ''}")
+        print(f"\t5. Summarize flagstats {'✓' if wf_status.get('flagstats') else ''}")
+        print(f"\t6. Generate coverage files {'✓' if wf_status.get('coverage') else ''}")
+        print(f"\t7. Generate depth files {'✓' if wf_status.get('depth_txt') else ''}")
+        print(f"\t8. Create depth plots {'✓' if wf_status.get('depth_plots') else ''}")
+        print(f"\t9. Extract genome {'✓' if wf_status.get('genome_extracted') else ''}")
         print(
-            f"\t10. Extract regions of interests {'✓' if wf_status.genes_extracted else ''}"
+            f"\t10. Extract regions of interests {'✓' if wf_status.get('genes_extracted') else ''}"
         )
         print("\tQ. Quit\n")
-        if wf_status.prerequisites:
+        if wf_status.get('prerequisites'):
             print("\tCommon run information :")
-            print(f"\t\t- {wf_status.stat_seq_n: <3} sequences")
-            print(f"\t\t- {wf_status.stat_ref_gen_n: <3} reference genomes")
+            print(f"\t\t- {wf_status.get('stat_seq_n'): <3} sequences")
+            print(f"\t\t- {wf_status.get('stat_ref_gen_n'): <3} reference genomes")
             print("\n\n")
         choice = input("Your choice ? > ").upper()
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                     )
 
             case "3":
-                if wf_status.prerequisites and wf_status.cleaning:
+                if wf_status.get("prerequisites") and wf_status.get("cleaning"):
                     sequence_pairs = seq.pair_sequences(quiet=True)
                     genomes = common.choose_genomes()
                     mp.complete_mapping(sequence_pairs, genomes)
