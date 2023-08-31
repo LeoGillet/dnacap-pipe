@@ -7,11 +7,14 @@ author: "Léo Gillet <leo.gillet@chu-bordeaux.fr>"
 
 ### Requirements :
 - Python (>= 3.10)
+- bcftools == 1.18
+- samtools == 1.18
+- bedtools == 2.31.0 
 - MultiQC == 1.14
 - Bowtie2 == 2.5.1
-- BWA == 0.7.17-r1198-dirty
+- fastp == 0.23.4
 - FastQC == 0.12.1
-- Sickle == 1.33
+- seqtk == 1.4-r130-dirty
 
 ### TODO :
 - ✅ Logging
@@ -19,7 +22,7 @@ author: "Léo Gillet <leo.gillet@chu-bordeaux.fr>"
 - ✅ Sequence parsing
 - ✅ Automatic reference genome indexing
 - ✅ FastQC report creation
-- ✅ Sequence trimming (sickle)
+- ✅ Sequence trimming (fastp)
 - ❌ _De novo_ assembly
 - ✅ Decontamination
 - ✅ Mapping

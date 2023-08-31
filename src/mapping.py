@@ -20,8 +20,8 @@ from src.logger import log, str_success
 def _start_human_mapping(fwd, rev, ext, basename):
     fwd_output_path = f"output/mapping/human_unmapped/{fwd+ext}"
     rev_output_path = f"output/mapping/human_mapped/{rev+ext}"
-    fwd_input_path = f"output/intermediate_files/sickled/{fwd+ext}"
-    rev_input_path = f"output/intermediate_files/sickled/{rev+ext}"
+    fwd_input_path = f"output/intermediate_files/trimmed/{fwd+ext}"
+    rev_input_path = f"output/intermediate_files/trimmed/{rev+ext}"
     subprocess.run(
         f"{common.get_tool_path('bowtie2')} -p 4 "
         + f"-x {common.get_genome_path('H.sapiens.GRCh38', 'bowtie')} "
@@ -112,7 +112,7 @@ def map_human(paired_sequences):
 
 
 # ---------------------------------------------
-#   M. genitalium assembly
+#   Other species assembly
 # ---------------------------------------------
 
 
@@ -122,7 +122,7 @@ def _start_mapping(fr_files: (str, str, str), basename, genome, on_human=True):
     if on_human:
         input_path = "output/mapping/human_unmapped"
     else:
-        input_path = "output/intermediate_files/sickled/"
+        input_path = "output/intermediate_files/trimmed/"
     try:
         os.makedirs(output_dir)
     except FileExistsError:
@@ -196,7 +196,7 @@ def complete_mapping(sequence_pairs, genomes, on_human=False):
                 mapping_threads.append(thread)
                 while threading.active_count() > max_threads:
                     pbar.set_description(
-                        f"Mapping {basename} on {genome}... (waiting for threads)"
+                        f"Mapping {basename} on {genome}"
                     )
                     pbar.refresh()
                     time.sleep(1)

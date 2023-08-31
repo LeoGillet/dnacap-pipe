@@ -5,12 +5,14 @@
     "bowtie2": "/opt/bio/bowtie2-2.5.1/bowtie2",
     "bowtie2-build": "/opt/bio/bowtie2-2.5.1/bowtie2-build",
     "bwa": "/opt/bio/bwa/bwa",
+    "fastp": "/opt/bio/fastp/fastp",
     "fastqc": "/opt/bio/FastQC/fastqc",
     "mosdepth": "/opt/bio/mosdepth-0.3.4/mosdepth",
     "samtools": "/opt/bio/samtools-1.18/build/bin/samtools",
     "seqtk": "/opt/bio/seqtk/seqtk",
     "sickle": "/opt/bio/sickle-1.33/sickle",
     "spades": "/opt/bio/SPAdes-3.15.4/bin/spades.py",
+    "trimmomatic": "/opt/bio/Trimmomatic-0.39/trimmomatic-0.39.jar",
     "vcfutils": "/opt/bio/bcftools-1.18/build/bin/vcfutils.pl"
   },
   "genomes": {
@@ -30,44 +32,33 @@
       "M.genitalium.M2321": "Mycoplasma_genitalium_M2321.fasta",
       "N.gonorrhoeae.TUM19854": "Neisseria_gonorrhoeae_TUM19854.fasta"
   },
-  "globals": {
-    "loaded_genomes": [
-      "H.pylori.J99.2001",
-      "H.pylori.J99.2015",
-      "H.pylori.J99.d1.2021",
-      "H.pylori.B38",
-      "H.pylori.26695",
-      "H.pylori.MT5135",
-      "H.pylori.HP45k",
-      "C.coli.FDAARGOS_735",
-      "C.jejuni.NCTC11351",
-      "C.trachomatis.D_UW-3_CX"
-    ],
-    "ignored_genomes_step3": [
-      "H.pylori.J99.2015",
-      "H.pylori.J99.d1.2021",
-      "H.pylori.B38",
-      "H.pylori.26695",
-      "H.pylori.MT5135",
-      "H.pylori.HP45k",
-      "C.coli.FDAARGOS_735",
-      "C.jejuni.NCTC11351",
-      "C.trachomatis.D_UW-3_CX"
-    ],
-    "regions": {
-      "H.pylori.J99.2001": "probes/roi_pylori_j99_2001.bed",
-      "M.genitalium.G37": "probes/genitalium.bed",
-      "M.genitalium.M2321": "probes/genitalium.bed",
-      "C.trachomatis.D_UW-3_CX": "probes/trachomatis.bed"
+  "pylori": {
+    "reference_genome": "H.pylori.J99.2001",
+    "ignored_genomes": [],
+    "regions": "probes/roi_pylori_j99_2001.bed",
+    "mutations": {
+      "16S": "mutations/pylori/pylori_16S_nuc.tab",
+      "23S": "mutations/pylori/pylori_23S_nuc.tab",
+      "gyrA": "mutations/pylori/pylori_gyrA_prot.tab",
+      "rpoB": "mutations/pylori/pylori_rpoB_prot.tab"
     }
   },
+  "genitalium": {
+    "reference_genome": "M.genitalium.G37",
+    "ignored_genomes": [],
+    "regions": "probes/genitalium_CDS.bed"
+  },
   "threads": {
+    "cleaning": 8,
     "coverage": 8,
     "depth": 8,
     "fastqc": 8,
     "genome_extraction": 8,
     "mapping": 4,
-    "plotting": 4,
-    "sickle": 8
+    "plotting": 4
+  },
+  "adapters": {
+    "TruSeq3-PE": "/opt/bio/Trimmomatic-0.39/adapters/TruSeq3-PE-2.fa",
+    "TruSeq3-SE": "/opt/bio/Trimmomatic-0.39/adapters/TruSeq3-SE.fa"
   }
 }

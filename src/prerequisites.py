@@ -174,8 +174,9 @@ def check_folders():
     while not _is_output_empty():
         if _ask_overwrite_behaviour():
             return
-    os.makedirs("output/intermediate_files/sickled")
-    os.makedirs("output/intermediate_files/fastqc_reports")
+    os.makedirs("output/intermediate_files/trimmed")
+    os.makedirs("output/intermediate_files/fastqc_reports/pretrim")
+    os.makedirs("output/intermediate_files/fastqc_reports/trimmed")
     os.makedirs("output/logs")
     os.makedirs("output/denovo")
     os.makedirs("output/mapping/human_mapped")
@@ -183,7 +184,8 @@ def check_folders():
     os.makedirs("output/mapping/human_sam")
     os.makedirs("output/mapping/human_flagstat")
     os.makedirs("output/mapping/human_bedcov")
-    os.makedirs("output/multiqc")
+    os.makedirs("output/multiqc/pretrim")
+    os.makedirs("output/multiqc/trimmed")
 
 
 # ---------------------------------------------

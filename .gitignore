@@ -292,6 +292,7 @@ _docs/*
 refs/*
 probes/*
 summarized_flagstat*
+fastp*
 
 # All sequence formats
 *.fq

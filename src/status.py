@@ -30,6 +30,7 @@ class Status:
             "genes_extracted": 0,
             "stat_seq_n": "?",
             "stat_ref_gen_n": "?",
+            "pipeline_type": "unset",
         }
         self.get_or_create()
         self.set("json_created", 1)
@@ -61,14 +62,16 @@ class Status:
         try:
             return self.statuses[checkpoint]
         except KeyError as exc:
-            raise KeyError("Unknown checkpoint", checkpoint, ", impossible to get") from exc
+            raise KeyError(
+                "Unknown checkpoint", checkpoint, ", impossible to get"
+            ) from exc
 
     def from_dict(self, data: dict):
         """
         Reads dict and updates checkpoint statuses
         """
         for checkpoint, value in data.items():
-            if checkpoint in self.to_dict() and isinstance(value, int):
+            if checkpoint in self.to_dict():
                 self.set(checkpoint, value)
 
     def get_or_create(self):
@@ -76,8 +79,15 @@ class Status:
         Called at instanciation, find status JSON in directory and loads it or creates it
         """
         if not os.path.isfile(self.json_path):
+            if not os.path.isdir("output"):
+                os.mkdir("output")
+            choice = "unset"
+            while choice not in ("pylori", "genitalium"):
+                choice = input(
+                    "Please set type of pipeline [pylori|genitalium] : "
+                ).lower()
+            self.statuses["pipeline_type"] = choice
             with open(self.json_path, "w", encoding="UTF-8") as json_file:
-                print(self.to_dict())
                 json.dump(self.to_dict(), json_file)
             return
         with open(self.json_path, "r", encoding="UTF-8") as json_file:

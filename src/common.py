@@ -7,6 +7,7 @@ import os
 import platform
 
 from src.logger import log
+from src import bed
 
 
 def clear_stdout():
@@ -64,7 +65,7 @@ def get_genome_path(genome_key, tool) -> str:
 def get_max_threads(operation):
     """
     Reads config.json file to fetch max threads for supported operations
-    :param operation: specified operation ('mapping', 'fastqc', 'sickle', ...)
+    :param operation: specified operation ('mapping', 'fastqc', 'cleaning', ...)
     """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
@@ -85,22 +86,22 @@ def get_max_threads(operation):
     )
 
 
-def choose_genomes() -> set:
+def choose_genomes(pipeline_type) -> set:
     """
     Imports genomes selected for the mapping of input sequences from config file
     """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
-    return set(config["globals"]["loaded_genomes"])
+    return set(config[pipeline_type]["reference_genomes"])
 
 
-def get_ignored_genomes_step3() -> set:
+def get_ignored_genomes(pipeline_type) -> set:
     """
     Returns set of genomes that should be ignored for depth and genes extraction
     """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
-    return set(config["globals"]["ignored_genomes_step3"])
+    return config[pipeline_type]["ignored_genomes"]
 
 
 def get_bam_files() -> list[tuple[str, str, str]]:
@@ -153,31 +154,35 @@ def get_probes_bed_files() -> list:
     return probes
 
 
-def get_genome_regions() -> dict:
+def get_genome_regions(pipeline_type) -> dict:
     """
     Returns dictionary of probes to search for depending on the genome
     the input sequence has been mapped to
     """
     with open("config.json", "r", encoding="UTF-8") as config_file:
         config = json.load(config_file)
-    return config["globals"]["regions"]
+    return config[pipeline_type]["regions"]
 
 
-def get_depth_files(ignore_genomes: tuple[str, ...] = ()) -> list[tuple[str, str, str]]:
+def get_depth_files(pipeline_type) -> list[tuple[str, str, str]]:
     """
     Gets all depth files created by previous steps and returns ones that shouldn't be ignored
     """
     depth_directory = "output/depth/"
     depth_files = []
+    ignore_genomes = get_ignored_genomes(pipeline_type)
     for genome in os.listdir(depth_directory):
         if genome in ignore_genomes:
             continue
         for file_ in os.listdir(depth_directory + genome):
+            if not file_.endswith(".txt"):
+                continue
             depth_files.append(
                 (
                     depth_directory + genome + "/" + file_,
                     file_.replace(".txt", ""),
                     genome,
+                    bed.bed_to_list(get_genome_regions(pipeline_type)),
                 )
             )
     return depth_files
@@ -206,27 +211,43 @@ def get_bam_files_extraction(ignore_genomes) -> list[tuple[str, str, str, str]]:
     return bam_files
 
 
-def get_genes_files(ignore_genomes):
+def get_genes_files(pipeline_type):
     """
     Gets all files required for the extraction of regions of interest
     """
     genomes_dir = "output/genes/"
     genomes = []
     for genome in os.listdir(genomes_dir):
-        if genome in ignore_genomes:
+        if genome in get_ignored_genomes(pipeline_type) or not os.path.isdir(genomes_dir + genome):
             continue
         for basename in os.listdir(genomes_dir + genome):
+            if not os.path.isdir(genomes_dir + genome + "/" + basename):
+                continue
             if os.path.isfile(
                 genomes_dir + genome + "/" + basename + "/" + "genome.fasta"
             ):
                 bed_names = None
-                if os.path.isfile(get_genome_regions()[genome] + ".names.list"):
-                    bed_names = get_genome_regions()[genome] + ".names.list"
-                genomes.append((
-                    genomes_dir + genome + "/" + basename + "/" + "genome.fasta",
-                    get_genome_regions()[genome],
-                    bed_names,
-                    genomes_dir + genome + "/" + basename + "/",
-                    basename,
-                ))
+                if os.path.isfile(get_genome_regions(pipeline_type) + ".names.list"):
+                    bed_names = get_genome_regions(pipeline_type) + ".names.list"
+                genomes.append(
+                    (
+                        genomes_dir + genome + "/" + basename + "/" + "genome.fasta",
+                        get_genome_regions(pipeline_type),
+                        bed_names,
+                        genomes_dir + genome + "/" + basename + "/",
+                        basename,
+                    )
+                )
     return genomes
+
+
+def get_adapters_path(adapters):
+    with open("config.json", "r", encoding="UTF-8") as config_file:
+        config = json.load(config_file)
+    return config["adapters"][adapters]
+
+
+def get_mutations(pipeline_type, gene):
+    with open("config.json", "r", encoding="UTF-8") as config_file:
+        config = json.load(config_file)
+    return config[pipeline_type]["mutations"][gene]

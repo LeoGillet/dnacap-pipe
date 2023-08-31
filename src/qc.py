@@ -2,7 +2,7 @@
 """
 This module contains multiple functions related to the Quality Control of the input sequences
     - FastQC functions generate QC reports on all input sequences
-    - Sickle trims sequences based on base quality
+    - FastP trims sequences based on base quality
     - MultiQC scans output folder for logs and reports in order to create a run summary
 """
 import subprocess
@@ -19,9 +19,9 @@ from src.logger import log, str_success
 # ---------------------------------------------
 
 
-def _exec_fastqc(fastqfile):
+def _exec_fastqc(fastqfile, mode):
     completed = subprocess.run(
-        f"{common.get_tool_path('fastqc')} {fastqfile} -o output/intermediate_files/fastqc_reports",
+        f"{common.get_tool_path('fastqc')} {fastqfile} -o output/intermediate_files/fastqc_reports/{mode}",
         shell=True,
         capture_output=True,
         check=True,
@@ -42,164 +42,154 @@ def run_all_fastqc(sequence_pairs):
     """
     fastqc_threads = []
     max_threads = common.get_max_threads("fastqc")
-    with tqdm(total=len(sequence_pairs)) as pbar:
-        for i, (basename, (fwd, rev, ext)) in enumerate(sequence_pairs.items()):
-            if fwd:
-                t_fwd = threading.Thread(
-                    target=_exec_fastqc, args=("input/" + fwd + ext,), daemon=True
-                )
-            if rev:
-                t_rev = threading.Thread(
-                    target=_exec_fastqc, args=("input/" + rev + ext,), daemon=True
-                )
-            pbar.set_description(
-                f"Generating FastQC report for paired sequences {basename}"
-            )
-            while threading.active_count() >= max_threads:
-                log(
-                    f"{threading.active_count()} active threads. Sleeping for a second..."
-                )
+    with tqdm(total=len(sequence_pairs) * 2) as pbar:
+        for mode, input_dir in (
+            ("pretrim", "input/"),
+            ("trimmed", "output/intermediate_files/trimmed/"),
+        ):
+            for basename, (fwd, rev, ext) in sequence_pairs.items():
+                if fwd:
+                    t_fwd = threading.Thread(
+                        target=_exec_fastqc,
+                        args=(
+                            input_dir + fwd + ext,
+                            mode,
+                        ),
+                        daemon=True,
+                    )
+                if rev:
+                    t_rev = threading.Thread(
+                        target=_exec_fastqc,
+                        args=(
+                            input_dir + rev + ext,
+                            mode,
+                        ),
+                        daemon=True,
+                    )
                 pbar.set_description(
-                    f"Generating FastQC report for paired sequences {basename} "
-                    + "(waiting for threads)"
+                    f"Generating FastQC report for paired sequences {basename} ({mode})"
                 )
-                pbar.refresh()
-                time.sleep(1)
-            log(
-                f"[{i + 1}/{len(sequence_pairs.keys())}] "
-                + f"Starting FastQC thread for paired sequences {basename}",
-                level="WARN",
-            )
-            pbar.set_description(
-                f"Generating FastQC report for paired sequences {basename}"
-            )
-            if fwd:
-                t_fwd.start()
-                fastqc_threads.append(t_fwd)
-            if rev:
-                t_rev.start()
-                fastqc_threads.append(t_rev)
-            pbar.update()
+                while threading.active_count() >= max_threads:
+                    pbar.refresh()
+                    time.sleep(1)
+                pbar.set_description(
+                    f"Generating FastQC report for paired sequences {basename}"
+                )
+                if fwd:
+                    t_fwd.start()
+                    fastqc_threads.append(t_fwd)
+                if rev:
+                    t_rev.start()
+                    fastqc_threads.append(t_rev)
+                pbar.update()
 
-        for thread in fastqc_threads:
-            thread.join()
-        pbar.update()
-        log(
-            f"Done creating {len(sequence_pairs.keys()) * 2} FastQC reports.",
-            level="SUCCESS",
-        )
-        pbar.write(
-            str_success(
-                f"Done creating {len(sequence_pairs.keys()) * 2} FastQC reports."
+            for thread in fastqc_threads:
+                thread.join()
+            pbar.update()
+            log(
+                f"Done creating {mode} {len(sequence_pairs.keys()) * 2} FastQC reports.",
+                level="SUCCESS",
             )
-        )
+            pbar.write(
+                str_success(
+                    f"Done creating {mode} {len(sequence_pairs.keys()) * 2} FastQC reports."
+                )
+            )
         pbar.close()
 
 
 # ---------------------------------------------
-#   Sickle
+#   Read cleaning & trimming
 # ---------------------------------------------
 
 
-def _sickle_command_paired_end(pe_file1, pe_file2, basename):
+def _trimmomatic_command_paired_end(pe_file1, pe_file2, basename):
     command = (
-        f"{common.get_tool_path('sickle')} pe "
-        f"-f input/{pe_file1} -r input/{pe_file2} -t sanger "
-        f"-o output/intermediate_files/sickled/{pe_file1} "
-        f"-p output/intermediate_files/sickled/{pe_file2} "
-        f"-s output/intermediate_files/sickled/singles_{basename}.fastq "
-        f"2>output/logs/sickle_log_{basename}.log"
+        f"java -jar {common.get_tool_path('trimmomatic')} PE "
+        f"input/{pe_file1} input/{pe_file2} "
+        f"output/intermediate_files/trimmed/{pe_file1} "
+        f"output/intermediate_files/trimmed/unpaired_{pe_file1} "
+        f"output/intermediate_files/trimmed/{pe_file2} "
+        f"output/intermediate_files/trimmed/unpaired_{pe_file2} "
+        f"ILLUMINACLIP:{common.get_adapters_path('TruSeq3-PE')}:2:30:10:2:True LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
     )
-    log("subprocess run:" + command, level="DEBUG")
     return command
 
 
-def _run_sickle_paired_end(forward_sequence: str, reverse_sequence: str, basename: str):
-    completed = subprocess.run(
-        _sickle_command_paired_end(forward_sequence, reverse_sequence, basename),
+def _trimmomatic_command_single_end(pe_file1, basename):
+    return (
+        f"java -jar {common.get_tool_path('trimmomatic')} SE "
+        f"input/{pe_file1} "
+        f"output/intermediate_files/trimmed/{pe_file1} "
+        f"ILLUMINACLIP:{common.get_adapters_path('TruSeq3-SE')}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36"
+    )
+
+def _fastp_single_end(in1):
+    command = (
+        f"{common.get_tool_path('fastp')} -l 36 -3 -5 -P 20 "
+        f"--trim_poly_g --trim_poly_x --cut_mean_quality 3 --cut_window_size 4 "
+        f"--adapter_fasta {common.get_adapters_path('TruSeq3-SE')} "
+        f"--in1 input/{in1} --out1 output/intermediate_files/trimmed/{in1}"
+    )
+    subprocess.run(
+        command,
         shell=True,
         capture_output=True,
         check=True,
     )
-    if completed.returncode != 0:
-        log(
-            f"Error occurred when sickling sequences {forward_sequence}+{reverse_sequence}",
-            level="ERROR",
-        )
-        raise RuntimeError(completed.stderr)
 
 
-def _sickle_command_single_end(pe_file1, basename):
+def _fastp_paired_end(in1, in2):
     command = (
-        f"{common.get_tool_path('sickle')} se "
-        f"-f input/{pe_file1} -t sanger "
-        f"-o output/intermediate_files/sickled/{pe_file1} "
-        f"2>output/logs/sickle_log_{basename}.log"
+        f"{common.get_tool_path('fastp')} -l 36 -3 -5 -P 20 "
+        f"--trim_poly_g --trim_poly_x --cut_mean_quality 3 --cut_window_size 4 "
+        f"--adapter_fasta {common.get_adapters_path('TruSeq3-PE')} "
+        f"--in1 input/{in1} --in2 input/{in2} "
+        f"--out1 output/intermediate_files/trimmed/{in1} "
+        f"--out2 output/intermediate_files/trimmed/{in2}"
     )
-    log("subprocess run:" + command, level="DEBUG")
-    return command
-
-
-def _run_sickle_single_end(sequence: str, basename: str):
-    completed = subprocess.run(
-        _sickle_command_single_end(sequence, basename),
+    subprocess.run(
+        command,
         shell=True,
         capture_output=True,
         check=True,
     )
-    if completed.returncode != 0:
-        log(
-            f"Error occurred when sickling sequences {sequence}",
-            level="ERROR",
-        )
-        raise RuntimeError(completed.stderr)
 
 
-def batch_sickle(sequence_pairs):
+def batch_cleaning(sequence_pairs):
     """
-    Runs sickle on all input sequences in individual threads
+    Runs fastp on all input sequences in individual threads
     """
-    sickle_threads = []
-    max_threads = common.get_max_threads("sickle")
+    cleaning_threads = []
+    max_threads = common.get_max_threads("cleaning")
     with tqdm(total=len(sequence_pairs) + 1) as pbar:
         for i, (basename, (fwd, rev, ext)) in enumerate(sequence_pairs.items()):
             if fwd and rev:
                 thread = threading.Thread(
-                    target=_run_sickle_paired_end,
-                    args=(fwd + ext, rev + ext, basename),
-                    daemon=True,
-                )
-            elif fwd:
-                thread = threading.Thread(
-                    target=_run_sickle_single_end,
-                    args=(fwd + ext, basename),
-                    daemon=True,
-                )
-            elif rev:
-                thread = threading.Thread(
-                    target=_run_sickle_single_end,
-                    args=(rev + ext, basename),
+                    target=_fastp_paired_end,
+                    args=(fwd + ext, rev + ext,),
                     daemon=True,
                 )
             else:
-                raise RuntimeError(f"Error when creating sickle thread for sequence(s) {basename}")
-            pbar.set_description(f"Sickle: {basename}")
-            while threading.active_count() >= max_threads:
-                log(
-                    f"{threading.active_count()} active threads. Sleeping for a second..."
+                seq = fwd if fwd else rev
+                thread = threading.Thread(
+                    target=_fastp_single_end,
+                    args=(seq + ext,),
+                    daemon=True,
                 )
-                pbar.set_description(f"Sickle: {basename} (waiting for threads)")
+            pbar.set_description(f"Cleaning {basename}")
+            while threading.active_count() >= max_threads:
                 pbar.refresh()
                 time.sleep(1)
             log(
-                f"[{i + 1}/{len(sequence_pairs.keys())}] Sickling {basename}",
+                f"[{i + 1}/{len(sequence_pairs.keys())}] Cleaning {basename}",
                 level="WARN",
             )
-            pbar.set_description(f"Sickle: {basename}")
+            cleaning_threads.append(thread)
             thread.start()
             pbar.update()
 
-        for thread in sickle_threads:
+        for thread in cleaning_threads:
             thread.join()
         pbar.update()
         pbar.write(
