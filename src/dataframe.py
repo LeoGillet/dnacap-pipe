@@ -13,7 +13,12 @@ PYLORI_COLUMNS = [
     "23S_2 Mutations",
     "gyrA Mutations",
     "rpoB Mutations",
-    "cagA"
+    "cagA",
+    "MLST best match",
+    "MLST match 2",
+    "MLST match 3",
+    "MLST match 4",
+    "MLST match 5",
 ]
 
 

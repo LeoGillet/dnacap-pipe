@@ -260,6 +260,7 @@ if __name__ == "__main__":
             case "C":
                 dfio.export_to_csv()
             case "G":
-                rep._to_html('DC2_10_S19', 'pylori')
+                for sample_name in list(dfio.get_or_create(wf_status.get("pipeline_type")).index):
+                    rep.to_html(sample_name, wf_status.get("pipeline_type"))
             case _:
                 common.clear_stdout()

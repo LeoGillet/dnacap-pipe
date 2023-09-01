@@ -3,7 +3,7 @@ from src import mlst
 
 
 def extra_options():
-    return "".join([
+    return "\n".join([
         "\t11. Start AMR detection",
         "\t12. Start MLST typing"
         ])
@@ -12,7 +12,7 @@ def extra_options():
 def start(step: int):
     match step:
         case 11:
-            muts = amr.start_pylori_amr_analysis()
+            amr.start_pylori_amr_analysis()
         
         case 12:
-            print(mlst._concatenate_pylori_mlst("DC2_10_S19"))
+            mlst.start_mlst_typing('pylori')

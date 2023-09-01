@@ -49,6 +49,7 @@
     "regions": "probes/genitalium_CDS.bed"
   },
   "threads": {
+    "alignment": 32,
     "cleaning": 8,
     "coverage": 8,
     "depth": 8,
